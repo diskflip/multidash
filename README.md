@@ -1,8 +1,9 @@
-# 15m Dashboard
+# Multibot
 
-A React and Node dashboard for monitoring recurring Kalshi markets. The
-frontend receives normalized market, order, position, and P&L messages from a
-local WebSocket backend; exchange credentials are never sent to the browser.
+Multibot is a React and Node dashboard for monitoring recurring Kalshi
+markets. The frontend receives normalized market, order, position, and P&L
+messages from a local WebSocket backend; exchange credentials are never sent
+to the browser.
 
 This repository is software, not a hosted service or trading recommendation.
 Review the code and risk controls before connecting any account.
@@ -50,7 +51,7 @@ rm "$test_key"
 ```
 
 Build, lint, and unit tests do not require live account credentials. Do not run
-`npm run dev`, `npm start`, `npm run dashboard`, or account-export scripts
+`npm run dev`, `npm start`, or account-export scripts
 unless you intend to connect to the configured exchange/account services.
 
 ## Local authenticated setup
@@ -96,8 +97,7 @@ derived from private account activity.
   out of Git.
 - Use a long random `DASHBOARD_ACCESS_TOKEN` for production serving.
 - Rotate a credential immediately if it has ever been committed or shared.
-- Deleting a file in a new commit does not remove it from Git history. See the
-  repository history audit before treating a clone as suitable for public use.
+- Deleting a file in a new commit does not remove it from existing Git history.
 
 ## Licensing
 

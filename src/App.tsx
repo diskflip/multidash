@@ -184,6 +184,7 @@ function App() {
     <div className="app">
       <div className="app-header">
         <div className="header-left">
+          <span className="app-brand">Multibot</span>
           <button type="button" className={`summary-toggle ${summaryVisible ? "active" : ""}`}
             aria-label="Show market summary" aria-pressed={summaryVisible}
             onClick={() => setSummaryVisible((shown) => !shown)}>

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { formatRemaining, useCountdown } from "../hooks/useCountdown";
 
-const DEFAULT_TITLE = "multibot";
+const APP_NAME = "Multibot";
 
 // Isolates the 1-second tick to this one small leaf component so it doesn't
 // re-render the rest of the app every second.
@@ -18,11 +18,12 @@ export function Countdown({ closeTime }: { closeTime: number | null }) {
 function useTabTitleCountdown(closeTime: number | null) {
   useEffect(() => {
     if (closeTime === null) {
-      document.title = DEFAULT_TITLE;
+      document.title = APP_NAME;
       return;
     }
     const update = () => {
-      document.title = formatRemaining(Math.max(0, Math.floor(closeTime - Date.now() / 1000)));
+      const remaining = formatRemaining(Math.max(0, Math.floor(closeTime - Date.now() / 1000)));
+      document.title = `${remaining} · ${APP_NAME}`;
     };
     update();
     const workerUrl = URL.createObjectURL(
@@ -33,7 +34,7 @@ function useTabTitleCountdown(closeTime: number | null) {
     return () => {
       worker.terminate();
       URL.revokeObjectURL(workerUrl);
-      document.title = DEFAULT_TITLE;
+      document.title = APP_NAME;
     };
   }, [closeTime]);
 }

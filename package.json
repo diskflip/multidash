@@ -2,6 +2,7 @@
   "name": "multibot",
   "private": true,
   "version": "0.0.0",
+  "description": "Multibot dashboard for recurring Kalshi markets.",
   "license": "MIT",
   "type": "module",
   "scripts": {
