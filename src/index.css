@@ -1,0 +1,35 @@
+/* Self-hosted (SIL OFL 1.1; see public/fonts/OFL.txt) — falls back to
+   JetBrains Mono if the font file fails to load. */
+@font-face {
+  font-family: "Departure Mono";
+  src: url("/fonts/DepartureMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  font: 14px/1.4 "Departure Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Departure Mono ships only one weight — without this the browser fakes
+     bold by smearing glyphs wider, which looks broken on a pixel font. */
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  /* Matches .app's background (App.css) so there's no seam if it's ever
+     shorter than the viewport. */
+  background: #14171b;
+  color: rgba(255, 255, 255, 0.8);
+}

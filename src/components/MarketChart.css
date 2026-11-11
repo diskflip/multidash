@@ -1,0 +1,417 @@
+.chart {
+  padding: 4px 0 0;
+  /* Must match .market-bar's side padding (12px) exactly, or a sliver of
+     card background shows as a second line next to the real border. */
+  margin: 0 -12px;
+}
+
+.chart-plot {
+  position: relative;
+  height: 320px;
+  border-radius: 4px;
+  background: #0d0f12;
+  overflow: hidden;
+  /* Lets a press-drag finger read the hover point instead of scrolling the page. */
+  touch-action: none;
+}
+
+.chart--horizontal .chart-plot {
+  height: 220px;
+}
+
+@media (max-width: 899px) {
+  .chart {
+    padding: 2px 0 0;
+    margin: 0 -16px;
+  }
+}
+
+@media (min-width: 900px) {
+  .chart {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .chart-plot {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
+}
+
+.chart-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-mid-line {
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+/* Secondary line — the underlying's distance from the strike, on the same
+   0-100 axis. Two stacked strokes on the same path — a dim, wider edge
+   underneath a brighter, narrower core (color/opacity set inline, per
+   symbol, in MarketChart.tsx) — read as a lit/beveled line instead of a
+   flat overlay, and stay visible at under 1px without a filter blur
+   (which flickered every tick as this path's live edge redrew). */
+.chart-distance-line-edge {
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-distance-line-core {
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Fixed pixel size (not viewBox units), same reason as .chart-dot. Kept
+   small and plain (no glow/gradient) — this only needs to mark where the
+   line currently is, not compete with the YES price dot right next to
+   it. left/top are percentages from project(), which already accounts
+   for orientation, so this needs no separate horizontal-layout handling. */
+.chart-distance-dot {
+  position: absolute;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: top 0.1s ease-out, left 0.1s ease-out;
+}
+
+.chart-hover-distance {
+  color: rgba(226, 232, 240, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-boundary-line {
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+/* Fixed pixel size (not viewBox units) so it renders as a real circle
+   regardless of the chart's non-uniform x/y scaling. */
+.chart-dot {
+  position: absolute;
+  width: 3.5px;
+  height: 3.5px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  /* Short glide, not a snap — real ticks land ~1s apart so this always
+     finishes first. Don't shorten toward 0 or lengthen past a real tick
+     interval; either can visually skip/erase a real point. */
+  transition: top 0.1s ease-out, left 0.1s ease-out;
+}
+
+/* A stable composited surface avoids repainting the SVG stroke on every tick. */
+.chart-order-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: currentColor;
+  will-change: transform;
+  transition: none;
+  pointer-events: none;
+}
+.chart-order-line--buy { color: #c153e0; }
+.chart-order-line--sell { color: #2fd996; }
+.chart-order-line--rest { color: #22b8e6; }
+
+.chart-current-label {
+  position: absolute;
+  transform: translate(-50%, 4px);
+  font-size: 15px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 6px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: top 0.1s ease-out, left 0.1s ease-out;
+}
+
+.chart--vertical .chart-current-label {
+  font-size: 16px;
+}
+
+/* Horizontal: dot sits shy of the right edge (see
+   MARGIN_TIME_END_HORIZONTAL) — float the label into that reserved space. */
+.chart--horizontal .chart-current-label {
+  transform: translate(9px, -50%);
+}
+
+/* Vertical only — price near 0/100 puts the dot close enough to the edge
+   that centering clips the far side. Shift fully to the side with room. */
+.chart-current-label.align-start {
+  transform: translate(0, 4px);
+}
+
+.chart-current-label.align-end {
+  transform: translate(-100%, 4px);
+}
+
+.chart-hover-line {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.chart-hover-dot {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 2px rgba(16, 19, 23, 0.85);
+  pointer-events: none;
+}
+
+/* align-above can clip against overflow:hidden near the top edge —
+   MarketChart.tsx flips to align-below in that case. */
+.chart-hover-tooltip {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(16, 19, 23, 0.92);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.chart-hover-tooltip.align-left.align-above {
+  transform: translate(0, -100%) translateY(-10px);
+}
+
+.chart-hover-tooltip.align-right.align-above {
+  transform: translate(-100%, -100%) translateY(-10px);
+}
+
+.chart-hover-tooltip.align-left.align-below {
+  transform: translateY(10px);
+}
+
+.chart-hover-tooltip.align-right.align-below {
+  transform: translate(-100%, 0) translateY(10px);
+}
+
+.chart-hover-time {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding-bottom: 2px;
+  margin-bottom: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+.chart-hover-yes {
+  color: #3ecf7e;
+}
+
+.chart-hover-no {
+  color: #e05a5a;
+}
+.chart-history-countdown { margin-right: auto; color: #abb4bf; font-variant-numeric: tabular-nums; }
+.chart-visible-score { margin-left: 12px; margin-right: auto; font-size: 28px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; color: #68717c; }
+.chart-visible-score + .chart-history-countdown { margin-left: 8px; }
+@media (max-width: 899px) { .chart-visible-score { margin-left: 16px; } }
+
+.chart-axis {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+  /* Fixed height so the scroll-indicator badge appearing/disappearing
+     doesn't resize the plot above (flex:1). */
+  height: 32px;
+  flex-shrink: 0;
+}
+
+/* Groups rng and the flip-score badge on the left so the badge sits next to
+   rng, not at the auto-margin gap that pushes the row's right side out. */
+.chart-axis-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  margin-left: 4px;
+}
+
+.chart-range {
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-range-label {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+}
+
+/* Colored only once the score crosses 7 (its own review threshold). */
+.chart-flip-score-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Color comes inline from heatColor (1-10 ramp), shared with the sim tallies. */
+.chart-flip-score {
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+
+/* Hover/focus-revealed, matching chart-hover-tooltip's look. */
+.chart-flip-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -8px);
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(16, 19, 23, 0.95);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.chart-flip-score-wrap:hover .chart-flip-tooltip,
+.chart-flip-score-wrap:focus-within .chart-flip-tooltip {
+  display: flex;
+}
+
+.chart-flip-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-flip-tooltip-status {
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+  padding-bottom: 2px;
+  margin-bottom: 1px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.chart-flip-tooltip-blockers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+  padding-top: 3px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f0506e;
+}
+
+/* Absolute, not a flex child, so its width never pushes rng/the toggle around. */
+.chart-unrealized-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.chart-unrealized-center.positive {
+  color: #2fd996;
+}
+
+.chart-unrealized-center.negative {
+  color: #f0506e;
+}
+
+.chart-window-toggle {
+  display: flex;
+  gap: 2px;
+}
+
+.chart-window-btn {
+  font-size: 9px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.35);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 5px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.chart-window-btn:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.chart-window-btn.active {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Shows how far behind live the view is; click to snap back. */
+.chart-scroll-indicator {
+  font-size: 9px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffc828;
+  background: rgba(255, 200, 40, 0.12);
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chart-scroll-indicator:hover {
+  background: rgba(255, 200, 40, 0.22);
+}
+
+.chart-held-contracts {
+  position: absolute;
+  right: 4px;
+  bottom: 1px;
+  z-index: 2;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: #0d0f12cc;
+  color: #d8b4e8;
+  font-size: 9px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  pointer-events: none;
+}

@@ -1,0 +1,618 @@
+.market-bar {
+  /* Lets descendants query THIS element's own width (see @container below)
+     — a desktop grid with many columns can render a card as narrow as a
+     phone, so sizing off viewport width alone was wrong. */
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  background: #0d0f12;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 15px 12px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+}
+.bot-toggle-btn.is-pending { cursor: progress; opacity: .75; }
+.live-control-error { flex-basis: 100%; color: #f0506e; font-size: 10px; }
+
+.market-bar.state-resting {
+  border-color: rgba(34, 184, 230, 0.24);
+  box-shadow: none;
+  transition: none;
+}
+
+.market-bar.state-holding {
+  border-color: rgba(193, 83, 224, 0.24);
+  box-shadow: none;
+  transition: none;
+}
+
+.market-bar.state-sold {
+  border-color: #2fd996;
+  box-shadow: 0 0 8px 0px rgba(47, 217, 150, 0.12);
+}
+
+.market-bar.disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Stretches each card to the grid row's full height so the chart below can
+   flex-grow into the leftover room. */
+@media (min-width: 900px) {
+  .market-bar {
+    height: 100%;
+  }
+}
+
+@media (max-width: 899px) {
+  .market-bar {
+    padding: 9px 16px;
+    gap: 5px;
+  }
+
+  .market-symbol {
+    font-size: 15px;
+  }
+}
+
+/* No flex-wrap — .bar-identity shrinks (to .market-symbol's ellipsis as a
+   last resort) and .bar-row-right stays fixed-size, so there's always room
+   on one line. Flex-wrap alone let this wrap even when shrinking had room
+   to spare — a container's line-wrap decision can trigger off an item's
+   un-shrunk size regardless. */
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.bar-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Shrinks to whatever's left after the icon and .bar-row-right (fixed
+     size) claim their space; min-width:0 lets it shrink below content size. */
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bar-symbol-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* min-width:0 + ellipsis, not just a smaller font — a long name (PLATINUM)
+   is one unbreakable word, so this guarantees it truncates instead of
+   growing past whatever room is left. */
+.market-symbol {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* No flex-wrap — just yes/slash/no, a small bounded width that never needs
+   to wrap; wrapping let the row's height flip between one and two lines
+   as the price's digit count changed. */
+.bar-yesno {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+/* No YES/NO labels — the slash reads as which is which. Muted colors, not
+   the brighter neon used for real P&L, since this is a live readout, not a result. */
+.bar-yesno-price {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.bar-yesno-price.yes {
+  color: #7fd4c9;
+}
+
+.bar-yesno-price.no {
+  color: #c97f8f;
+}
+
+.bar-yesno-slash {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.bar-pnl {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.6);
+  flex: 0 0 auto;
+}
+
+.bar-pnl.positive {
+  color: #2fd996;
+}
+
+.bar-pnl.negative {
+  color: #f0506e;
+}
+
+/* Bot controls left, paper-sim figure right — both quiet/secondary. */
+.bar-footer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.bar-pnl-sim-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.bar-pnl-sim-row > *:not(:first-child) {
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bar-pnl-sim-item {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.bar-pnl-sim-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Only shown while holding or resting — see MarketCard.tsx. */
+.bar-contracts {
+  grid-column: 1 / -1;
+  font-size: 9px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.bar-contracts.yes {
+  color: #7fd4c9;
+}
+
+.bar-contracts.no {
+  color: #c97f8f;
+}
+
+/* Color comes inline from heatColor (count ramp), shared with the flip
+   score; the gold .flash below overrides it while a win pulses. */
+.bar-pnl-sim-value {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.4);
+  opacity: 0.9;
+  transition: opacity 0.15s ease;
+}
+
+.bar-pnl-sim-value.flash {
+  opacity: 1;
+  color: #ffc828;
+  animation: sim-win-pulse 1.4s ease-out;
+}
+
+@keyframes sim-win-pulse {
+  0% {
+    text-shadow: 0 0 0 rgba(255, 200, 40, 0);
+  }
+  25% {
+    text-shadow: 0 0 8px rgba(255, 200, 40, 0.7);
+  }
+  100% {
+    text-shadow: 0 0 0 rgba(255, 200, 40, 0);
+  }
+}
+
+/* Badge stacked above pnl+toggle (see .bar-row-right-bottom), not beside
+   them, so it only ever adds height here, never width — a holding/resting
+   flip can't change how much horizontal room the header needs. */
+.bar-row-right {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.bar-row-right-bottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Reserved width, not just content-sized, so a holding/resting flip never
+   changes how much room this needs. Sized for "HOLDING" — the transient
+   "SOLD ... @ ...c" text can still run wider for its ~2.2s window. */
+.order-badges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-width: 46px;
+}
+
+.order-badge {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.order-badge.resting {
+  font-size: 9px;
+  padding: 1px 5px;
+  color: #22b8e6;
+  background: rgba(34, 184, 230, 0.14);
+}
+
+.order-badge.holding {
+  color: #2fd996;
+  background: rgba(47, 217, 150, 0.14);
+}
+
+.order-badge.sold {
+  color: #2fd996;
+  background: rgba(47, 217, 150, 0.14);
+}
+
+@media (min-width: 900px) {
+  .order-badge {
+    font-size: 11px;
+    padding: 2px 7px;
+  }
+
+  .order-badge.resting {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .order-badges {
+    min-width: 68px;
+  }
+}
+
+.bar-paused {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.toggle-switch {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 12px;
+  border-radius: 6px;
+  border: none;
+  padding: 1.5px;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.toggle-switch.on {
+  background: rgba(79, 138, 116, 0.4);
+}
+
+.toggle-knob {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #8a8f96;
+  display: block;
+  transition: transform 0.15s ease;
+}
+
+.toggle-switch.on .toggle-knob {
+  background: #a9c4b9;
+  transform: translateX(8px);
+}
+
+.live-bot-switch {
+  width: 30px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 2px;
+  background: #353d45;
+}
+
+.toggle-switch.live-bot-switch.on {
+  background: #28664b;
+}
+
+.live-bot-switch .toggle-knob {
+  width: 14px;
+  height: 14px;
+  background: #bcc4cb;
+}
+
+.live-bot-switch.on .toggle-knob {
+  background: #c5efd9;
+  transform: translateX(12px);
+}
+
+.live-bot-switch:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+.bar-bot-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.fx-swing-control {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.fx-swing-toggle { white-space: nowrap; }
+.fx-swing-toggle:disabled { cursor: default; }
+.fx-swing-toggle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.fx-swing-error {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  width: 170px;
+  padding: 6px;
+  background: #171a20;
+  color: #ff9191;
+  font-size: 11px;
+  z-index: 2;
+}
+
+.bot-toggle-btn {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  background: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+/* Just the word colors — no background of its own. */
+.bot-toggle-btn.on {
+  color: #2fd996;
+}
+
+.bot-toggle-btn.off {
+  color: rgba(255, 255, 255, 0.22);
+}
+
+/* Click to edit — see MarketCard.tsx. Colored on hover as the only hint. */
+.bot-size-value {
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.7);
+  min-width: 16px;
+  text-align: center;
+  padding: 1px 2px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.bot-size-value:hover {
+  color: #fff;
+}
+
+.bot-size-input {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border: none;
+  border-radius: 3px;
+  padding: 1px 3px;
+  width: 28px;
+  text-align: center;
+  outline: none;
+}
+
+/* Hide the native number-input spinner arrows — the input is small and
+   they'd overlap the digits. */
+.bot-size-input::-webkit-outer-spin-button,
+.bot-size-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.bot-size-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+@media (min-width: 900px) {
+  .bar-bot-controls {
+    gap: 7px;
+  }
+
+  .bot-toggle-btn {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+
+  .bot-size-value {
+    font-size: 14px;
+    min-width: 22px;
+  }
+
+  .bot-size-input {
+    font-size: 14px;
+    width: 34px;
+  }
+}
+
+@media (max-width: 899px) {
+  .bot-toggle-btn {
+    font-size: 13px;
+    padding: 5px 9px;
+  }
+
+  .bot-size-value {
+    font-size: 12px;
+    min-width: 19px;
+  }
+
+  .bot-size-input {
+    font-size: 12px;
+    width: 30px;
+  }
+}
+
+.bot-toggle-btn.manual-trade-btn {
+  font-size: 13px;
+  min-width: 48px;
+  min-height: 34px;
+  padding: 8px 6px;
+  flex-shrink: 0;
+}
+.manual-trade-btn.sell { color: #f0506e; }
+.manual-trade-btn:disabled { opacity: .5; cursor: default; }
+.manual-trade-btn[aria-busy="true"] { cursor: progress; }
+.bot-toggle-btn.manual-trade-btn {
+  border: 1px solid #ffffff20;
+  border-radius: 5px;
+  background: #191d22;
+  box-shadow: none;
+  font-weight: 600;
+  letter-spacing: .015em;
+  text-align: center;
+  box-sizing: border-box;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.bot-toggle-btn.manual-trade-btn.sell { color: #e58a9b; }
+.bar-bot-controls { gap: 8px; }
+.bot-toggle-btn.manual-trade-btn { margin-left: 3px; }
+.bot-toggle-btn.manual-trade-btn:not(:disabled):hover { border-color: #ffffff35; background: #252b31; }
+.bot-toggle-btn.manual-trade-btn:not(:disabled):active { background: #101317; box-shadow: inset 0 1px 3px #0005; }
+.toggle-switch.live-bot-switch:not(:disabled):hover { filter: brightness(1.08); }
+.toggle-switch.live-bot-switch:focus-visible,
+.bot-toggle-btn.manual-trade-btn:focus-visible { outline: 2px solid #abb4bf; outline-offset: 2px; }
+@media (max-width: 899px) {
+  .bar-row-right-bottom > .toggle-switch { display: none; }
+  .live-bot-switch { width: 32px; height: 20px; border-radius: 10px; }
+  .live-bot-switch .toggle-knob { width: 16px; height: 16px; }
+  .live-bot-switch.on .toggle-knob { transform: translateX(12px); }
+  .bot-toggle-btn.manual-trade-btn { min-height: 40px; }
+}
+
+.bar-footer .live-control-error { grid-column: 1 / -1; }
+
+@container (max-width: 360px) {
+  .bar-footer { gap: 3px; }
+  .bar-bot-controls { gap: 5px; }
+  .bot-toggle-btn.manual-trade-btn { min-width: 40px; padding: 8px 3px; font-size: 12px; }
+  .fx-swing-toggle { padding: 5px 2px; font-size: 11px; }
+  .bot-size-value { min-width: 18px; font-size: 12px; padding: 1px; }
+  .bot-size-input { width: 25px; font-size: 12px; padding: 1px; }
+  .bar-pnl-sim-row { gap: 4px; }
+  .bar-pnl-sim-row > *:not(:first-child) { padding-left: 4px; }
+  .bar-pnl-sim-item { gap: 2px; }
+  .bar-pnl-sim-value { font-size: 13px; }
+}
+
+@container (max-width: 210px) {
+  .bar-footer { margin-inline: -6px; }
+  .bar-bot-controls { gap: 2px; }
+  .live-bot-switch { width: 30px; height: 18px; border-radius: 9px; }
+  .live-bot-switch .toggle-knob { width: 14px; height: 14px; }
+  .live-bot-switch.on .toggle-knob { transform: translateX(10px); }
+  .bot-toggle-btn.manual-trade-btn { min-width: 27px; padding: 8px 0; font-size: 11px; }
+  .fx-swing-toggle { font-size: 9px; padding: 5px 1px; }
+  .bot-size-value { min-width: 15px; font-size: 10px; }
+  .bot-size-input { width: 21px; font-size: 10px; }
+  .bar-pnl-sim-row { gap: 2px; }
+  .bar-pnl-sim-row > *:not(:first-child) { padding-left: 2px; }
+  .bar-pnl-sim-label { font-size: 7px; }
+  .bar-pnl-sim-value { font-size: 10px; }
+}
+
+/* Scales the identity row down when the CARD itself is narrow (not the
+   viewport) — a desktop grid squeezed to many columns can be as narrow as
+   a phone. Overrides the @media(min-width:900px) badge sizing above. */
+@container (max-width: 320px) {
+  .market-symbol {
+    font-size: 10px;
+  }
+
+  .bar-yesno-price {
+    font-size: 13px;
+  }
+
+  .bar-row {
+    gap: 5px;
+  }
+
+  .bar-row-right {
+    gap: 4px;
+  }
+
+  .order-badge {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+
+  .order-badge.resting {
+    font-size: 8px;
+    padding: 1px 4px;
+  }
+
+  .order-badges {
+    min-width: 40px;
+  }
+
+  .bar-pnl {
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 900px) {
+  .market-bar.state-resting {
+    border-width: 1px;
+    border-color: rgba(34, 184, 230, 0.48);
+  }
+
+  .market-bar.state-holding {
+    border-width: 1px;
+    border-color: rgba(193, 83, 224, 0.48);
+  }
+}

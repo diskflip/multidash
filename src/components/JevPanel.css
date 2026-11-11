@@ -1,0 +1,12 @@
+.sidebar-panel-title { margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .1em; color: #89929e; }
+.sidebar-panel-title::after { content: ""; display: block; width: 20px; height: 1px; margin-top: 5px; background: #ffffff26; }
+.jev-panel { background:#0d0f12; border:.5px solid #ffffff1a; border-radius:4px; padding:8px; min-width:0; flex-shrink:0; font-variant-numeric:tabular-nums; }
+.jev-row,.jev-columns { display:grid; grid-template-columns:minmax(0,1fr) 40px 45px; align-items:center; gap:5px; }
+.jev-columns { font-size:10px; color:#68717c; margin-bottom:4px; }
+.jev-row { height:28px; font-size:14px; color:#89929e; }
+.jev-market { display:flex; align-items:baseline; gap:4px; }
+.jev-market small { font-size:11px; color:#89929e; }
+.jev-yes {color:#2fd996;} .jev-no {color:#f0506e;}
+.jev-confidence {text-align:right;}
+@media (min-width:900px) { .jev-mobile {display:none;} }
+@media (max-width:899px) { .jev-desktop {display:none;} .jev-mobile {width:calc(100% - 12px);max-width:none;margin:0 auto 8px;} }

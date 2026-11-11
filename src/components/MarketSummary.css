@@ -1,0 +1,103 @@
+.market-summary {
+  --summary-row-height: min(48px, calc((100dvh - 100px) / var(--summary-count, 11)));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+.summary-rows { display: grid; grid-auto-rows: var(--summary-row-height); margin: 0 -8px -8px; }
+.summary-main { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.summary-row {
+  display: flex; flex-direction: column; justify-content: center; width: 100%; min-height: 0; padding: 7px 12px; margin: 0; box-sizing: border-box;
+  border: 1px solid transparent; border-bottom-color: #ffffff0d;
+  background: transparent; color: inherit; font: inherit; text-align: left;
+  cursor: pointer;
+}
+.summary-row:hover { background: #ffffff06; }
+.summary-row:focus-visible { outline: 1px solid #abb4bf; outline-offset: 1px; }
+.summary-row.is-hidden, .summary-row.is-hidden *:not(.is-high-score) { color: #68717c !important; }
+.summary-row:last-child { border-bottom-color: transparent; }
+.summary-main, .summary-bottom { width: 100%; line-height: 1.05; }
+.summary-symbol { font-size: 14px; white-space: nowrap; }
+.summary-score { font-size: 22px; line-height: 1.05; }
+.summary-bottom { display: flex; align-items: baseline; justify-content: space-between; padding: 1px 0 0; }
+.summary-price { display: inline-flex; gap: 2px; font-size: 15px; }
+.summary-yes { color: #2fd996; }
+.summary-no { color: #f0506e; }
+.summary-divider { color: #78818e; }
+.summary-flips { color: #aab1bb; display: inline-flex; gap: 2px; font-size: 14px; text-align: right; }
+@media (min-width: 900px) {
+  .market-summary { flex: 0 0 192px; align-self: flex-start; }
+}
+@media (max-width: 899px) {
+  .market-summary { margin: 4px 6px; flex-shrink: 0; }
+}
+
+.summary-section {
+  background: #0d0f12;
+  border: .5px solid #ffffff1a;
+  border-radius: 4px;
+  padding: 8px;
+  min-width: 0;
+}
+.summary-section-title { margin: 0 0 3px; color: #89929e; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.summary-section-heat { display: inline-block; width: 7px; height: 7px; margin: 0 0 1px 6px; border-radius: 50%; vertical-align: middle; }
+.summary-section-heat--dead { background: #737b85; box-shadow: 0 0 4px #737b8530; }
+.summary-section-heat--mediocre { background: #c9ad57; box-shadow: 0 0 5px #c9ad5738; }
+.summary-section-heat--hot { background: #e99248; box-shadow: 0 0 6px #e9924845; }
+.summary-section-heat--extremely-hot { background: #ed5c78; box-shadow: 0 0 7px #ed5c7850; }
+@media (max-width: 899px) {
+  .market-sidebar .market-summary { --summary-row-height: 46px; }
+  .summary-section .summary-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
+}
+
+.summary-section-title--crypto { color: #a99cff; }
+
+@media (min-width: 900px) {
+  .market-sidebar .market-summary { --summary-row-height: 58px; }
+}
+.summary-section-title::after {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 1px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  background: currentColor;
+  opacity: .4;
+}
+
+/* Fixed readable rows on phones: never inherit desktop viewport compression. */
+@media (max-width: 899px) {
+  .market-sidebar .market-summary { --summary-row-height: 64px; }
+  .summary-section { padding: 10px; }
+  .summary-section .summary-rows {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-auto-rows: minmax(64px, auto);
+    gap: 0;
+    margin: 0 -10px -10px;
+  }
+  .summary-row { min-width: 0; padding: 10px 12px; gap: 5px; }
+  .summary-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .summary-main, .summary-bottom { line-height: 1.2; }
+  .summary-symbol { font-size: 14px; overflow: hidden; text-overflow: ellipsis; }
+  .summary-score { font-size: 22px; }
+  .summary-bottom { padding: 0; gap: 10px; white-space: nowrap; }
+  .summary-price { font-size: 14px; }
+  .summary-flips { font-size: 13px; }
+}
+
+/* Heat colors the actual edge-to-edge row border, including its separator. */
+.summary-row.is-hot {
+  border-radius: 4px;
+  border-width: .5px;
+  border-color: rgb(220 163 92 / 38%);
+  box-shadow: 0 0 4px rgb(220 163 92 / 7%);
+}
+
+.summary-row.is-hot.is-legendary {
+  border-width: .5px;
+  border-color: rgb(239 122 214 / 48%);
+  box-shadow: 0 0 5px rgb(239 122 214 / 10%);
+}
